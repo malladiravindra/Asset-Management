@@ -1,0 +1,274 @@
+============================================================
+ASSETFLOW — FRONTEND FEATURES / FIELDS WITH NO BACKEND  (analysis only, no code changed)
+============================================================
+Date: 2026-09-24
+Scope: every page and component under asset-management/src, compared against asset_backend
+(urls.py / views.py / serializers.py / models.py).
+Paths: FE = asset-management/src   BE = asset_backend
+
+HOW TO READ THIS
+  [NO BACKEND]  there is no backend model or endpoint at all
+  [NOT SAVED]   collected in a form, then dropped: not sent, or the serializer doesn't accept it
+  [FAKE]        shown in the UI but hardcoded, invented, or derived from an unrelated field
+  [LOCAL]       computed in the browser although the backend already returns it (backend value unused)
+  [STORED ONLY] saved to the database, but nothing enforces or uses it
+
+============================================================
+PART 1 — "COMING SOON" MODULES (no page, no backend)
+============================================================
+Every sidebar link without its own page falls through to the catch-all
+FE/app/dashboard/[...slug]/page.tsx, which shows "Coming soon — this module is on the
+roadmap and isn't built yet." (links defined in FE/lib/nav.ts).
+
+  1. Roles & Permissions   /dashboard/roles-permissions
+       No frontend page and no backend (no role or permission model, no API).
+       Related: the backend's LoginView returns only id/username/email, with no role field.
+  2. Profile               /dashboard/profile
+       No frontend page and no backend. There is no /me endpoint and no profile update or
+       change-password-while-logged-in API. The user shown in the topbar/sidebar comes only
+       from localStorage, written at login (FE/components/auth/context.tsx).
+  3. Help Center           /dashboard/help-center
+       No frontend page and no backend.
+  4. Support               /dashboard/support
+       No frontend page and no backend (no ticket or contact model).
+
+Also incomplete:
+  5. Register / Sign-up: backend POST /api/accounts/register/ exists, but there is no frontend
+     page for it.
+  6. Pages with no sidebar link: /dashboard/returns and /dashboard/software-licenses are only
+     reachable as Service tabs or by typing the URL. /dashboard/maintenance and /repairs are
+     reached from the dashboard quick action and from notifications.
+
+============================================================
+PART 2 — WHOLE MODULES WITH NO BACKEND
+============================================================
+  NOTIFICATIONS  (FE/components/notifications/*, page /dashboard/notifications)
+    [NO BACKEND] No Notification model or API. The feed is built in the browser from the
+       Assets, Maintenance, Repairs and Assignments lists.
+    [LOCAL] Read/unread state and "Mark all as read" are kept only in this browser's
+       localStorage ("assetflow.notifications.read"). They are not shared across devices or users.
+    [FAKE] Warranty notifications are based on a fake warranty end date (see Assets).
+
+  REPORTS: PDF export
+    [NO BACKEND] "Export PDF" is only window.print(). CSV is also built in the browser, from
+       GET /api/reports/assets/. There is no date-range filter or format option.
+
+  PURCHASE ORDERS: Bill / Invoice
+    [NO BACKEND] "View Bill" / "Print Bill" are browser-only (window.open + print). There is no
+       invoice model and no PDF, email or stored-bill endpoint.
+    [FAKE] The Invoice number is made up by replacing "PO-" with "INV-" (FE/components/purchase-orders/data.ts:119).
+    [FAKE] The Invoice Date is just the PO's received date.
+
+============================================================
+PART 3 — FIELDS WITH NO BACKEND, BY MODULE
+============================================================
+
+--- ALL ASSETS (FE/components/assets) ---
+  [FAKE]      Warranty End Date: filled from asset.updated_at (assets/context.tsx:75). The backend
+              has only warranty_status, no end date. Also fake as a result: "days of coverage
+              remaining", the Timeline "Expires…" line, warranty notifications, and the Returns warranty tab.
+  [FAKE]      Warranty Provider: always "" (context.tsx:76). No backend field.
+  [FAKE]      adapterSerial, hostname: always "" (context.tsx:77-78). No backend field.
+  [FAKE]      Purchase Date falls back to created_at when empty (context.tsx:71).
+  [FAKE]      "Brand / Model" in the detail modal shows asset.name. The backend returns brand and
+              model names, but the frontend ignores them.
+  [FAKE]      History tab: shows only the current assignee, with no history API call.
+              Timeline tab: assembled from the asset's own fields, with no event data.
+  [NOT SAVED] The Add/Edit form has no inputs for brand, model, vendor, purchase date or current
+              value, although the backend accepts all five. So Asset.brand, Asset.model and
+              Asset.vendor stay empty for assets created from the UI.
+  [NO BACKEND] "More filters" button: no onClick (table.tsx:569-575).
+  [NO BACKEND] "Asset QR code" button: no onClick and no QR endpoint (detail-modal.tsx:380-386).
+  [NO BACKEND] Asset image: no image field in the database.
+  [NO BACKEND] Disposal / "Disposed" status: no such feature.
+  Partial:    Export/Import cover 11 columns only; brand, model, vendor, purchase date and current
+              value are not included.
+  [LOCAL]     Status tab counts are computed in the browser. GET /api/assets/summary/ exists but is unused.
+
+--- CATEGORIES (FE/components/categories) ---
+  [LOCAL] Assets, Fleet %, Asset Value and the progress bar come from matching asset category
+          names as text. The backend returns asset_count, percent_of_fleet and current_asset_value.
+  [FAKE]  "Models" count and the "Models in this Category" list are really distinct asset names,
+          not catalog Models. Backend model_count and the detail "models" list are unused.
+  Unused backend fields: description, code.
+
+--- BRANDS (FE/components/brands) ---
+  [NOT SAVED] "Model name prefix": no backend column. Kept in memory only and lost on reload.
+  [NOT SAVED] "Color": no backend column. Kept in memory only; every brand is blue again after reload.
+  [FAKE]      The brand-to-asset link is guessed with asset.name.startsWith(prefix), not the real
+              Asset.brand link. Assets, Categories, Asset Value, Fleet % and the drill-down all
+              depend on that guess.
+  Unused backend fields: logo, description, asset_count, model_count.
+
+--- MODELS (FE/components/models) ---
+  [FAKE]  The "Units" count and the unit list match asset.name == model.name as text.
+  [FAKE]  "In Stock" / "No Units" means count > 0; it does not reflect asset status.
+  [FAKE]  The default category is hardcoded to "Laptops" from mock CATEGORY_BREAKDOWN (assets/data.ts).
+  Note:   Code and Description are stored in specifications JSON but never shown outside the form.
+          Clearing all of spec/code/description on edit does not save.
+
+--- EMPLOYEES (FE/components/employees) ---
+  [FAKE]       "Joined" date: hardcoded new Date() (employees/context.tsx:51). No join-date column.
+  [FAKE]       Employee ID shows "EMP-{id}" when the backend value is null.
+  [NO BACKEND] "On Leave" status: the backend only has is_active (active/inactive).
+  [NO BACKEND] "Book value" total in the detail modal: no backend field.
+  [NO BACKEND] The 4 stat cards look clickable but have no onClick. Mail/phone icons have no mailto:/tel:.
+  [LOCAL]      Stat cards and asset counts are computed in the browser.
+               GET /api/organization/summary/ is unused.
+
+--- DEPARTMENTS (FE/components/departments) ---
+  [NO BACKEND] "Asset Value" (sum of current_value): no backend field.
+  [LOCAL]      Assets, Employees and % of fleet are computed in the browser; the backend values are ignored.
+  [FAKE]       Icon and colour are picked from the id when blank, and only saved on the next edit.
+
+--- WORKPLACES / LOCATIONS (FE/components/locations) ---
+  [NOT SAVED] 7 form fields have no model column and are not sent (grid.tsx:133-137):
+              1. Location Code
+              2. Status (marked required *)
+              3. City
+              4. State
+              5. Country
+              6. Postal Code
+              7. Description / Notes
+              The edit form always reopens with these blank, and Status resets to "Active".
+  [FAKE]      An empty address is SAVED to the database as the literal text "No address on file" (grid.tsx:136).
+  [LOCAL]     Card stats and tab counts are computed in the browser. "% of fleet" is by count in
+              the frontend but by value in the backend, so the two disagree.
+
+--- VENDORS (FE/components/vendors) ---
+  [FAKE]       Vendor Code is invented in the browser ("VEN-{id}") and saved on edit. The backend
+               has no generator and no uniqueness rule.
+  [NO BACKEND] "Spend by Category": no backend equivalent.
+  [FAKE]       The header asset count counts ALL assets, not only vendor-linked ones.
+  Display gap: 9 saved fields (Company Name, Contact Person, Vendor Code, GST, address fields,
+               Payment Terms, Currency, Notes, Status) are visible only inside the edit form.
+  [LOCAL]      Assets, Spend, Avg Cost and % of spend are computed in the browser.
+               /api/organization/vendors/summary/ is unused.
+
+--- PURCHASE ORDERS (FE/components/purchase-orders) ---
+  [NOT SAVED] Company Name, Vendor Email and Vendor Address inputs are dropped by toBackend
+              (context.tsx:286-287). The backend only echoes them read-only from the Vendor record.
+  [NOT SAVED] Vendor phone is filled when a vendor is picked but has no input and is never sent.
+  [NOT SAVED] Tax is sent but ignored; the backend recomputes it (2 decimals vs. the frontend's whole-rupee preview).
+  Note:       "Vendor Name" is a lookup key, not free text. Typing an unknown name fails with "Vendor not found".
+  [NO BACKEND] Invoice No. / Invoice Date / Bill: see Part 2.
+  Missing UI: there is no Edit PO screen, although the backend supports PUT/PATCH.
+
+--- ASSIGNMENTS (FE/components/assignments) ---
+  [NO BACKEND] Assignment number / prefix: no number field in the database.
+  [NO BACKEND] Assignment notes: no notes field in the database.
+  [NO BACKEND] Employee acknowledgement step: not implemented.
+  [NO BACKEND] Multiple assets per assignment: not implemented.
+  Display gap: condition and reason are fetched but never shown.
+  Missing UI: edit/reassign (backend PATCH exists). deleteAssignment exists but is never called.
+
+--- RETURNS (FE/components/returns) ---
+  [FAKE] Return ID "RET-###" is built from the row id. The Return model has no code field.
+  [FAKE] The Warranty tab (End date / Provider) uses the fake asset warranty fields (see Assets).
+  [NO BACKEND] No separate return-confirmation step.
+
+--- REPAIRS (FE/components/repairs) ---
+  [FAKE]      Vendor default comes from a hardcoded brand-to-vendor map (repairs/data.ts:126-140).
+  [LOCAL]     The asset status change (In Repair / Available) is only a second PATCH from the
+              browser. The backend repair serializer does not update the asset.
+  [NO BACKEND] Repair description field: not implemented (only "issue").
+  [NO BACKEND] Notify employee/admin on completion: no notification emails exist.
+
+--- MAINTENANCE (FE/components/maintenance) ---
+  [LOCAL]     The asset status change is browser-only (second PATCH). The backend does not update the asset.
+  [NO BACKEND] Upcoming-maintenance reminders / emails: not implemented (only overdue items are flagged).
+  Missing UI: the Add form has no cost field (the backend accepts it on create).
+
+--- ACCESSORIES (FE/components/accessories + accessory-assignments) ---
+  [FAKE]       Null purchase_date, warranty_expiry and last_restocked are shown as TODAY, then saved
+               as today on the next edit or ±1 click (accessories/context.tsx:92,94,99).
+  [FAKE]       "Last Restocked" has no input and never changes.
+  [NO BACKEND] The "Assign one" / "Return one" buttons only change the assigned_qty counter. They
+               create no assignment row, record no employee and keep no history.
+  [NO BACKEND] Returning an accessory assignment: no return/update/delete endpoint (list and create
+               only). Rows stay "Assigned" forever.
+  Display gap: brand, model, description, reorder qty, purchase date, PO number, warranty expiry,
+               storage location, condition and item status are visible only in the edit form.
+               Accessory-assignment department, location, notes and date are never shown (no history view).
+
+--- SOFTWARE LICENSES (FE/components/software-licenses) ---
+  [FAKE]       Null purchase_date is shown as TODAY and saved back on edit.
+  [NO BACKEND] Seat assignment: "Assign/Release seat" only changes the seats_used counter.
+               There is no record of who holds a seat.
+  [NO BACKEND] Renewal history: Renew overwrites purchase_date with today; no renewal record is kept.
+  [STORED ONLY] Auto-Renew: saved and shown, but nothing acts on it.
+
+--- DASHBOARD ---
+  [NO BACKEND] Warranty "days left": the backend has no warranty end-date column (see dashboard/api.ts).
+  Otherwise fully backed by GET /api/dashboard/.
+
+--- AUDIT LOGS ---
+  Fully backed by the backend (/api/audit-logs/). CSV export is built in the browser (acceptable).
+
+============================================================
+PART 4 — SETTINGS PAGE: FIELDS THAT ARE SAVED BUT DO NOTHING  [STORED ONLY]
+============================================================
+Source: BE/system_settings/services.py (STORED_REASONS). The backend itself lists these as
+persisted but not used by any module. 55 fields:
+
+  General:        organization_logo_url, company_email, company_phone, address, city, state, country,
+                  timezone, date_format, time_format, currency, default_language
+  Organization:   allow_multiple_locations, allow_multiple_departments, auto_generate_employee_id
+  Assets:         auto_generate_asset_code, require_asset_image, allow_asset_disposal,
+                  require_disposal_approval
+  Purchase Orders: auto_generate_po_number, po_require_approval, po_approval_threshold
+  Assignments:    auto_generate_assignment_number, assignment_number_prefix,
+                  require_employee_acknowledgement, require_return_confirmation,
+                  allow_multiple_assets_per_assignment, require_assignment_notes
+  Maintenance:    maintenance_reminder_enabled, maintenance_reminder_days, send_maintenance_email,
+                  maintenance_notification_days
+  Repairs:        auto_generate_repair_number, require_repair_description,
+                  notify_employee_on_repair_completion, notify_admin_on_repair_completion
+  Notifications:  email_notifications_enabled, email_notify_assignment, email_notify_return,
+                  email_notify_maintenance, email_notify_repair, email_notify_purchase_order,
+                  email_notify_account, email_notify_audit, inapp_notify_purchase_order
+  Security:       session_timeout_minutes, password_expiry_days
+  Reports:        default_report_format, default_report_date_range, report_include_logo,
+                  report_include_generated_date, report_include_generated_by,
+                  report_include_asset_details, report_include_financial_info
+  Audit:          audit_track_permission_changes, audit_retention_days
+
+  Locked (fixed by DB constraints, cannot be changed): allow_duplicate_serial_numbers,
+  require_serial_number, po_require_vendor.
+  All other settings ARE enforced (code prefixes/formats, password policy, OTP, lockout,
+  maintenance mode, audit tracking, default statuses, in-app notification toggles).
+
+============================================================
+PART 5 — BACKEND ENDPOINTS THE FRONTEND NEVER CALLS
+============================================================
+  GET  /api/assets/summary/
+  GET  /api/catalog/summary/
+  GET  /api/catalog/search/
+  GET  /api/organization/summary/
+  GET  /api/organization/vendors/summary/
+  /api/assets/categories|departments|locations|employees/   (duplicates, see earlier plan)
+  POST /api/accounts/register/                               (no sign-up page)
+  PUT/PATCH/DELETE /api/operations/assignments/<id>/, /returns/<id>/
+  PUT/PATCH /api/operations/purchase-orders/<id>/            (no Edit PO screen)
+  POST/PUT/PATCH/DELETE /api/reports/assets/[<id>/]          (dead reports CRUD)
+
+============================================================
+PART 6 — RELATED BUGS FOUND DURING THE ANALYSIS (they affect stored data)
+============================================================
+  1. Dates saved one day early in UTC+ timezones (India) because of toISOString():
+     - Maintenance and Repairs completed_date, and every edit of scheduled/expected dates
+     - Default dates in the Assignment, Return, Repair and Maintenance forms
+     (maintenance/context.tsx:63-65, repairs/context.tsx:74-76, maintenance/table.tsx:43-45,
+     repairs/table.tsx:40-42, assignments/table.tsx:64-66, returns/table.tsx:59-61)
+  2. Assignments/Returns search crashes when an employee has no department:
+     null.toLowerCase() at assignments/table.tsx:127 and returns/table.tsx:99.
+  3. Warranty repairs force cost = 0, which the backend rejects when "Require Repair Cost" is on.
+  4. The Maintenance Add form offers "Preventive" even when the setting disables it, so the
+     backend rejects it.
+  5. Employees: designation and department cannot be cleared on edit ("" is sent as undefined in a PATCH).
+  6. Security: AssetExportAPIView uses AllowAny (BE/assets/views.py:456). Anyone can download the
+     full asset list without logging in.
+
+============================================================
+END
+============================================================

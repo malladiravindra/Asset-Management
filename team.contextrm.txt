@@ -1,0 +1,171 @@
+PROJECT WORK LOG — AssetFlow (Asset Management System)
+Range: 2026-08-26 to 2026-09-07
+Source: git history (branch assetflow-ui / Asset-development) + asset-management/team.context.md session notes
+
+====================================================================
+SUMMARY
+====================================================================
+Over this period the project moved from a pure frontend (Next.js) prototype
+with mock/in-memory data to a two-part application:
+  - asset-management/  → Next.js frontend
+  - asset_backend/     → Django REST backend (auth, database, real APIs)
+
+Work fell into two phases:
+  1) 2026-08-26 → 2026-09-04 (AM): frontend-only feature building on mock
+     React-context data (contributor: Guru).
+  2) 2026-09-04 (PM) → 2026-09-07: repo restructuring into separate
+     frontend/backend projects, and wiring the frontend to a real Django
+     API for authentication + CRUD across every module (contributor:
+     Malladi Ravindra, with Claude Sonnet 5 assistance). This phase is
+     still in progress as of 2026-09-07 (see "IN PROGRESS" section).
+
+====================================================================
+PHASE 1 — FRONTEND FEATURE WORK (mock data, no backend)
+====================================================================
+
+2026-08-26 — Reports & Audit Logs modules
+- Built a real Reports & Analytics module: KPI stat cards, SVG donut chart,
+  fleet-by-category breakdown, warranty×condition health panel, 12-month
+  acquisition trend chart, working Export PDF / Export CSV.
+- Built a real Audit Log module: filterable stat cards, search, day-grouped
+  entries, CSV export. Wired real event logging (logEvent()) into the
+  Assets and Assignments modules so Create/Update/Assign/Return/Delete
+  actions actually appear in the log (previously would have been static).
+- Fixed dashboard bugs: hardcoded greeting text now time-of-day aware,
+  Refresh button now does a real reload, "Reports" links actually navigate,
+  People→Departments deep link now bookmarkable via ?tab=.
+
+2026-08-27 — Topbar sticky / layout fixes
+- Fixed a real Chromium engine bug where the topbar (position: sticky)
+  detached from view on scroll — switched to position: fixed with a
+  collapsed-aware offset and spacer div. Verified via headless Chromium.
+- Fixed a Chrome-vs-Edge responsive grid mismatch across every module's
+  stat-card grid (lowered breakpoint from xl: to lg:).
+- Added Back/Home buttons to the topbar breadcrumb.
+
+2026-08-28 — Notifications, sidebar profile menu, vendor validation
+- Notifications now open a detail modal (with a "View in <module>" link)
+  instead of navigating immediately; individual bell entries mark
+  themselves read on click.
+- Sidebar footer is now a clickable profile popover (Account settings /
+  Sign out).
+- Vendor "Email" field made required with format validation (removed the
+  auto-generated placeholder-email fallback).
+
+2026-08-31 — People module Cards/Table view, calendar/dashboard bug fixes
+- Added a Cards/Table view toggle to the People module (Employees +
+  Departments both gained real table views).
+- Redesigned Maintenance's List/Calendar switch per a user mockup.
+- Fixed the shared "TODAY" constant going stale (was hardcoded, now
+  computed from the real current date).
+- Fixed the Dashboard not reflecting live asset changes (Total/Available/
+  hero text were reading a static seed array instead of live context).
+
+2026-09-01 — More "static data vs live context" dashboard fixes
+- Fixed Maintenance scheduling not updating the Dashboard's "Under Service"
+  count (asset status wasn't being flipped to "Maintenance").
+- Fixed Dashboard "Warranty Alerts" (was fully hardcoded demo data) and
+  "Assets by Department" (was reading a fixed 6-department seed array) to
+  compute live.
+- Fixed Dashboard "Recent Activity" to pull from the real Audit Log
+  instead of a hardcoded fake activity list.
+
+2026-09-02 — Dashboard stat card styling
+- Iterated several rounds on stat-card / Quick Action hover styling,
+  settling on a shared blue hover-border (no click/selection state).
+- Capped "Assets by Department" panel to top 7 departments; reordered the
+  Department/Status panels.
+
+2026-09-03 — Purchase Orders, Vendors, Locations forms redesigned
+- Fixed a recurring status-tracker layout bug (Purchase Orders +
+  Maintenance detail modals).
+- Rebuilt the Purchase Order form to match a supplied mockup: sectioned
+  layout, GST-based tax (not manual entry), editable PO Number/Order Date.
+- Added View Bill / Print Bill for received Purchase Orders — printing
+  goes through a separate popup window (in-app print produced extra
+  blank pages; root-caused and fixed).
+- Rebuilt the Vendor form (6 → 18 fields: Company Name, GST/Tax ID,
+  address, payment terms, currency, etc.) and the Location form (3 → 10
+  fields) to match supplied mockups.
+
+2026-09-04 (AM) — Sidebar renames, Service module
+- Renamed sidebar labels "People" → "Organization" and "Locations" →
+  "Workplaces" (routes/underlying code unchanged — label-only rename).
+- Added a new "Service" module that tab-merges Returns, Maintenance,
+  Repairs, and Software Licenses under one sidebar entry (old routes
+  still work standalone).
+
+====================================================================
+PHASE 2 — BACKEND INTEGRATION & REPO RESTRUCTURING
+====================================================================
+
+2026-09-04 (PM) — Split into separate frontend/backend projects
+- Moved the Next.js app into asset-management/ and the Django project into
+  asset_backend/ as two independent projects (previously mixed at repo
+  root); removed the now-duplicate root-level frontend files.
+
+2026-09-05 — Backend hardening + full CRUD wiring
+- Tightened backend settings/security config; removed the committed
+  db.sqlite3 database file from version control; expanded .gitignore.
+- SECRET_KEY now fails loudly (raises a clear error) if missing instead of
+  silently falling back to an insecure default; added requirements.txt and
+  .env.example; corrected stale README content.
+- Largest change of the period — wired every module's frontend UI to the
+  real Django REST API instead of local mock state:
+    * Added apiPut/apiPatch/apiDelete to the API client.
+    * Added a toast notification system for success/error feedback on
+      every create/update/delete.
+    * Assets, Categories, Brands, Models, Departments, Locations, Vendors,
+      Employees, Assignments, Maintenance, Repairs, Software Licenses,
+      Accessories, and Purchase Orders now all read/write through real
+      backend endpoints.
+    * Returns is now backed by a real GET /api/operations/returns/
+      endpoint instead of being derived client-side.
+    * Fixed two live bugs: Vendor status always showing "Inactive"
+      (case-mismatch), and Employees reading a non-existent field instead
+      of the serializer's real "status" field.
+    * Purchase Orders' item picker now uses real model IDs instead of a
+      hardcoded mock array.
+    * Dashboard "Current Value" now computed from real asset data.
+    * Added a working Logout action (calls the backend, clears tokens)
+      and a client-side route guard on the dashboard.
+  Backend-side: fixed LogoutView 500 error on an already-expired refresh
+  token; secured the asset export endpoint (was open to anyone, now
+  requires login).
+  Verified: full frontend type-check/lint/build pass, all 44 backend
+  tests pass, live create/read/update/delete round-trips confirmed against
+  the dev server. (Notifications and Audit Log intentionally left as
+  frontend-only — no backend exists for either yet, per explicit scope
+  decision.)
+
+2026-09-07 — Forgot-password bug fix + cleanup
+- Fixed a 503 error on the forgot-password OTP email: settings now
+  validate that SMTP credentials exist in .env (loud error if missing,
+  instead of a silent bad fallback), strip stray whitespace from
+  credential values, and enforce Gmail's required port/TLS settings. SMTP
+  failures now log the real underlying exception server-side for
+  debugging, while the user-facing error message is unchanged.
+- Removed a stray empty.txt file and an .env.example file from the repo
+  (cleanup).
+
+====================================================================
+IN PROGRESS — uncommitted as of 2026-09-07 (not yet finished/verified)
+====================================================================
+- Renaming the "Person" concept to "Employee" across the backend data
+  model (new migrations in assets/ and operations/ retargeting the
+  foreign key) — in progress, not yet committed.
+- Removing the old standalone "People" page/tabs component on the
+  frontend (superseded by the work below).
+- New "Organization" module under construction on both sides:
+  frontend (src/app/dashboard/organization/, src/components/organization/)
+  and backend (organization app — admin, filters, models, serializers,
+  views, urls all being modified).
+- New backend "reports" app being built (untracked asset_backend/reports/
+  directory) to replace the frontend's mock reports/data.ts with a real
+  API (new src/components/reports/api.ts on the frontend side).
+- Asset model gained a purchase_date field (migration pending).
+- Various supporting tweaks continuing across dashboard shell/topbar/nav,
+  employees table/context, and requirements.txt.
+
+NOTE: everything in this "IN PROGRESS" section is uncommitted in the
+working tree — review, test, and commit before treating it as done.

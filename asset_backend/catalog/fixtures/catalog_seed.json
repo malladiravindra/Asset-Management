@@ -1,0 +1,277 @@
+[
+  {
+    "model": "catalog.category",
+    "pk": 1,
+    "fields": {
+      "name": "Laptops", "code": "LT", "icon": "laptop", "color": "blue",
+      "description": "Notebooks and ultrabooks issued to employees.",
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 2,
+    "fields": {
+      "name": "Desktops", "code": "DT", "icon": "cpu", "color": "emerald",
+      "description": "Fixed workstations and tower PCs.",
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 3,
+    "fields": {
+      "name": "Monitors", "code": "MN", "icon": "monitor", "color": "cyan",
+      "description": "External displays.",
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 4,
+    "fields": {
+      "name": "Mobile Devices", "code": "MB", "icon": "smartphone", "color": "amber",
+      "description": "Phones and tablets.",
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 5,
+    "fields": {
+      "name": "Networking", "code": "NW", "icon": "router", "color": "violet",
+      "description": "Switches, routers, and access points.",
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": 6,
+    "fields": {
+      "name": "Peripherals", "code": "PR", "icon": "mouse", "color": "pink",
+      "description": "Keyboards, mice, and other accessories.",
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "catalog.brand", "pk": 1,
+    "fields": {
+      "name": "Dell", "logo": "", "description": "", "category": null,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 2,
+    "fields": {
+      "name": "HP", "logo": "", "description": "", "category": null,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 3,
+    "fields": {
+      "name": "Lenovo", "logo": "", "description": "", "category": null,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 4,
+    "fields": {
+      "name": "Apple", "logo": "", "description": "", "category": null,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 5,
+    "fields": {
+      "name": "LG", "logo": "", "description": "", "category": 3,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 6,
+    "fields": {
+      "name": "Samsung", "logo": "", "description": "", "category": null,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 7,
+    "fields": {
+      "name": "Cisco", "logo": "", "description": "", "category": 5,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 8,
+    "fields": {
+      "name": "Netgear", "logo": "", "description": "", "category": 5,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 9,
+    "fields": {
+      "name": "Ubiquiti", "logo": "", "description": "", "category": 5,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.brand", "pk": 10,
+    "fields": {
+      "name": "Logitech", "logo": "", "description": "", "category": 6,
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "catalog.model", "pk": 1,
+    "fields": {
+      "name": "Dell Latitude 5440", "category": 1, "brand": 1,
+      "specifications": {"summary": "Intel Core i5-1334U · 16GB RAM · 512GB SSD"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 2,
+    "fields": {
+      "name": "HP EliteBook 840", "category": 1, "brand": 2,
+      "specifications": {"summary": "Intel Core i5-1345U · 16GB RAM · 512GB SSD"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 3,
+    "fields": {
+      "name": "Lenovo ThinkPad X1", "category": 1, "brand": 3,
+      "specifications": {"summary": "Intel Core i7-1355U · 16GB RAM · 1TB SSD"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 4,
+    "fields": {
+      "name": "MacBook Pro 14\"", "category": 1, "brand": 4,
+      "specifications": {"summary": "Apple M3 Pro · 18GB RAM · 512GB SSD"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "catalog.model", "pk": 5,
+    "fields": {
+      "name": "HP EliteDesk 800", "category": 2, "brand": 2,
+      "specifications": {"summary": "Intel Core i5-12500 · 16GB RAM · 512GB SSD"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 6,
+    "fields": {
+      "name": "Dell OptiPlex 7090", "category": 2, "brand": 1,
+      "specifications": {"summary": "Intel Core i7-11700 · 16GB RAM · 1TB SSD"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 7,
+    "fields": {
+      "name": "Lenovo ThinkCentre M90", "category": 2, "brand": 3,
+      "specifications": {"summary": "Intel Core i5-11500 · 8GB RAM · 512GB SSD"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "catalog.model", "pk": 8,
+    "fields": {
+      "name": "LG UltraWide 34\"", "category": 3, "brand": 5,
+      "specifications": {"summary": "34\" · 3440×1440 · IPS · 100Hz"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 9,
+    "fields": {
+      "name": "Dell UltraSharp 27\"", "category": 3, "brand": 1,
+      "specifications": {"summary": "27\" · 2560×1440 · IPS · 75Hz"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 10,
+    "fields": {
+      "name": "Samsung Odyssey G5", "category": 3, "brand": 6,
+      "specifications": {"summary": "27\" · 2560×1440 · VA · 165Hz"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "catalog.model", "pk": 11,
+    "fields": {
+      "name": "iPhone 14", "category": 4, "brand": 4,
+      "specifications": {"summary": "A15 Bionic · 128GB · 6.1\" OLED"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 12,
+    "fields": {
+      "name": "Samsung Galaxy S23", "category": 4, "brand": 6,
+      "specifications": {"summary": "Snapdragon 8 Gen 2 · 128GB · 6.1\" AMOLED"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 13,
+    "fields": {
+      "name": "iPad Air", "category": 4, "brand": 4,
+      "specifications": {"summary": "Apple M1 · 64GB · 10.9\" Liquid Retina"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "catalog.model", "pk": 14,
+    "fields": {
+      "name": "Cisco Catalyst 9200", "category": 5, "brand": 7,
+      "specifications": {"summary": "24-port · 1Gbps · PoE+"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 15,
+    "fields": {
+      "name": "Netgear ProSAFE", "category": 5, "brand": 8,
+      "specifications": {"summary": "16-port · 1Gbps · Unmanaged"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 16,
+    "fields": {
+      "name": "Ubiquiti UniFi AP", "category": 5, "brand": 9,
+      "specifications": {"summary": "Wi-Fi 6 · 2x2 MIMO · PoE"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+
+  {
+    "model": "catalog.model", "pk": 17,
+    "fields": {
+      "name": "Logitech MX Master 3", "category": 6, "brand": 10,
+      "specifications": {"summary": "Wireless · Bluetooth/USB · 70-day battery"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.model", "pk": 18,
+    "fields": {
+      "name": "Dell KB216 Keyboard", "category": 6, "brand": 1,
+      "specifications": {"summary": "Wired · USB · Full-size"},
+      "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-01T00:00:00Z"
+    }
+  }
+]

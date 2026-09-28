@@ -1,0 +1,348 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+/*
+ * Page-entrance animations — one distinct style per module, so each area of
+ * the app has its own identity when it mounts. Applied to a page's top-level
+ * blocks (with a small stagger between them), never to anything that
+ * re-renders on data changes.
+ */
+
+/* Dashboard */
+@keyframes zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-zoom-in {
+  animation: zoom-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Assets */
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Assignments */
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Maintenance */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Repairs */
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-down {
+  animation: fade-in-down 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Reports */
+@keyframes blur-in {
+  from {
+    opacity: 0;
+    filter: blur(6px);
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+.animate-blur-in {
+  animation: blur-in 0.7s ease-out both;
+}
+
+/* Purchase Orders */
+@keyframes tilt-in {
+  from {
+    opacity: 0;
+    transform: perspective(800px) rotateX(-10deg) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(800px) rotateX(0) translateY(0);
+  }
+}
+.animate-tilt-in {
+  animation: tilt-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+
+/* Accessories */
+@keyframes pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-pop-in {
+  animation: pop-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Software Licenses */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-rise-in {
+  animation: rise-in 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Notifications */
+@keyframes drop-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-drop-in {
+  animation: drop-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Vendors */
+@keyframes skew-in {
+  from {
+    opacity: 0;
+    transform: skewX(-8deg) translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: skewX(0) translateX(0);
+  }
+}
+.animate-skew-in {
+  animation: skew-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Catalog */
+@keyframes unfold-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+.animate-unfold-in {
+  animation: unfold-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top;
+}
+
+/* Service */
+@keyframes swing-in {
+  from {
+    opacity: 0;
+    transform: rotate(-4deg) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) translateY(0);
+  }
+}
+.animate-swing-in {
+  animation: swing-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+
+/* Audit Logs */
+@keyframes wipe-in {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+.animate-wipe-in {
+  animation: wipe-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* People */
+@keyframes scale-fade {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-scale-fade {
+  animation: scale-fade 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Returns */
+@keyframes swipe-in {
+  from {
+    opacity: 0;
+    transform: translate(24px, 24px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+.animate-swipe-in {
+  animation: swipe-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Locations */
+@keyframes pin-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-24px) scale(0.9);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(3px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.animate-pin-drop {
+  animation: pin-drop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-zoom-in,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-fade-in-up,
+  .animate-fade-in-down,
+  .animate-blur-in,
+  .animate-tilt-in,
+  .animate-pop-in,
+  .animate-rise-in,
+  .animate-drop-in,
+  .animate-skew-in,
+  .animate-unfold-in,
+  .animate-swing-in,
+  .animate-wipe-in,
+  .animate-scale-fade,
+  .animate-swipe-in,
+  .animate-pin-drop {
+    animation: none;
+  }
+}

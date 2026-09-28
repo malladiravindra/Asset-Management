@@ -1,0 +1,97 @@
+AUDIT LOGS MODULE - FRONTEND ONLY (read-only analysis)
+Source files reviewed:
+- asset-management/src/components/audit-logs/data.ts
+- asset-management/src/components/audit-logs/context.tsx
+- asset-management/src/components/audit-logs/log-view.tsx
+- asset-management/src/app/dashboard/audit-logs/page.tsx
+
+NOTE: This is currently frontend-only mock/local data. There is no backend
+audit-log API wired in yet (context.tsx starts with an empty in-memory log
+list; data.ts has hardcoded sample entries called INITIAL_AUDIT_LOGS, which
+does not appear to be consumed by the provider).
+
+========================================
+1. FIELDS (AuditLogEntry type - data.ts)
+========================================
+- id           : number                       - unique identifier for the log entry
+- action       : AuditAction (enum)           - one of: CREATE, UPDATE, ASSIGN, RETURN, DELETE
+- title        : string                       - human-readable description of what happened
+                                                 (e.g. "AF-0003 assigned to Priya Patel")
+- actor        : string                       - who performed the action (e.g. "IT Administrator")
+- context      : string (optional)            - extra context, e.g. department name
+                                                 (e.g. "Engineering", "Finance")
+- timestamp    : Date                         - when the event occurred
+
+Action metadata (ACTION_META, per action type):
+- label        : display label (Create, Update, Assign, Return, Delete)
+- icon         : Lucide icon component (PackagePlus, Pencil, UserCheck, Undo2, Trash2)
+- chip         : Tailwind classes for the colored badge/chip
+- dot          : Tailwind classes for a status dot color
+
+========================================
+2. FUNCTIONALITY (log-view.tsx)
+========================================
+- Page header: "Audit Logs" title + subtitle "Track every change across your
+  fleet in real time."
+- Export button: exports the currently filtered logs to a CSV file
+  (auditLogsToCSV in data.ts), named
+  "assetflow-audit-log-<YYYY-MM-DD>.csv", with columns:
+    Action, Details, Actor, Context, Timestamp (ISO format)
+
+- Summary stat cards (clickable filters), one per action type + "All Activity":
+    - All Activity (total count)
+    - Create count
+    - Update count
+    - Assign count
+    - Return count
+    - Delete count
+  Clicking a card filters the list to that action type (click again to
+  reset to All).
+
+- Search box: filters entries by matching text (case-insensitive) against
+  title, actor, or context fields. Placeholder text: "Search activity,
+  assets, employees..."
+
+- Grouping: filtered results are grouped by day using dayLabel():
+    - "Today"
+    - "Yesterday"
+    - "<N> days ago" (for < 7 days)
+    - formatted date (e.g. "12 Aug" or "12 Aug 2025" if different year)
+
+- Each log row displays:
+    - Action icon (colored per action type)
+    - Action label chip (colored badge)
+    - Title/description text
+    - "by <actor>" + optional " · <context>" + " · <time ago>"
+  Relative time via timeAgo(): "Just now", "<N>m ago", "<N>h ago",
+  "<N>d ago", "<N>mo ago"
+
+- Empty state: "No activity matches your filters." when no entries match.
+
+- Pagination:
+    - PAGE_SIZE = 8 entries per page
+    - "Showing X-Y of Z events" summary
+    - Previous / Next buttons (disabled at first/last page)
+    - "Page X of Y" indicator
+
+========================================
+3. HOW ENTRIES GET CREATED (context.tsx)
+========================================
+- AuditLogProvider / useAuditLog hook (React context) exposes:
+    - logs: current list of AuditLogEntry
+    - logEvent({ action, title, actor, context? }): adds a new entry to the
+      top of the list, auto-assigning an incrementing id and current
+      timestamp (new Date())
+- Other modules call logEvent() to record actions (referenced from):
+    - asset-management/src/components/assets/table.tsx
+    - asset-management/src/components/assignments/table.tsx
+    - asset-management/src/components/providers.tsx (wraps app with
+      AuditLogProvider)
+    - asset-management/src/app/dashboard/page.tsx
+    - asset-management/src/lib/nav.ts (nav entry for Audit Logs page)
+
+========================================
+4. ROUTE
+========================================
+- Page: asset-management/src/app/dashboard/audit-logs/page.tsx
+- Renders <AuditLogView /> only.
