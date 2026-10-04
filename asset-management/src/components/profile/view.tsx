@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, type FormEvent, type ReactNode } from "react";
-import { Building2, KeyRound, Loader2, Save, ShieldCheck, UserRound } from "lucide-react";
+import { Building2, KeyRound, LayoutGrid, Loader2, Save, ShieldCheck, UserRound } from "lucide-react";
 import { ApiError, apiPatch, apiPost } from "@/lib/api";
 import { displayNameFor, initialsFor, useCurrentUser, type Me } from "@/components/auth/context";
 import { controlClass, FieldLabel, InlineError, primaryButtonClass } from "@/components/ui/modal";
 import { useToast } from "@/components/ui/toast";
+import { TabBar } from "@/components/ui/tab-bar";
 import { cn } from "@/lib/utils";
 
 const inputClass = cn(controlClass, "disabled:cursor-not-allowed disabled:opacity-60");
@@ -213,6 +214,14 @@ function ChangePasswordForm() {
   );
 }
 
+type ProfileTab = "overview" | "edit" | "password";
+
+const PROFILE_TABS: { key: ProfileTab; label: string; icon: typeof LayoutGrid }[] = [
+  { key: "overview", label: "Overview", icon: LayoutGrid },
+  { key: "edit", label: "Edit profile", icon: ShieldCheck },
+  { key: "password", label: "Change password", icon: KeyRound },
+];
+
 /**
  * My Profile — everything shown comes from GET /api/accounts/me/ (User +
  * linked Employee + roles), owned by AuthProvider; this page never fetches
@@ -220,6 +229,7 @@ function ChangePasswordForm() {
  */
 export function ProfileView() {
   const { me, loading } = useCurrentUser();
+  const [tab, setTab] = useState<ProfileTab>("overview");
 
   if (loading && !me) {
     return (
@@ -278,49 +288,59 @@ export function ProfileView() {
         </div>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <Card icon={UserRound} title="Account">
-          <dl className="grid gap-4 sm:grid-cols-2">
-            <Detail label="Username" value={user.username} />
-            <Detail label="Email" value={user.email} />
-            <Detail label="Member since" value={formatDateTime(user.date_joined)} />
-            <Detail label="Last sign-in" value={formatDateTime(user.last_login)} />
-          </dl>
-        </Card>
+      <TabBar tabs={PROFILE_TABS} active={tab} onSelect={setTab} ariaLabel="Profile sections" idPrefix="profile" />
 
-        <Card icon={Building2} title="Organization">
-          {employee ? (
-            <dl className="grid gap-4 sm:grid-cols-2">
-              <Detail label="Employee ID" value={employee.employee_id} />
-              <Detail label="Designation" value={employee.designation} />
-              <Detail label="Department" value={employee.department_name} />
-              <Detail label="Location" value={employee.location_name} />
-              <Detail label="Phone" value={employee.phone} />
-            </dl>
-          ) : (
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              This account is not linked to an employee record. An administrator can link it from Roles &amp;
-              Permissions &gt; Users.
-            </p>
-          )}
-        </Card>
+      <div key={tab} id="profile-panel" role="tabpanel" aria-labelledby={`profile-tab-${tab}`} className="space-y-6 animate-fade-in-up">
+        {tab === "overview" && (
+          <div className="grid gap-6 xl:grid-cols-2">
+            <Card icon={UserRound} title="Account">
+              <dl className="grid gap-4 sm:grid-cols-2">
+                <Detail label="Username" value={user.username} />
+                <Detail label="Email" value={user.email} />
+                <Detail label="Member since" value={formatDateTime(user.date_joined)} />
+                <Detail label="Last sign-in" value={formatDateTime(user.last_login)} />
+              </dl>
+            </Card>
+
+            <Card icon={Building2} title="Organization">
+              {employee ? (
+                <dl className="grid gap-4 sm:grid-cols-2">
+                  <Detail label="Employee ID" value={employee.employee_id} />
+                  <Detail label="Designation" value={employee.designation} />
+                  <Detail label="Department" value={employee.department_name} />
+                  <Detail label="Location" value={employee.location_name} />
+                  <Detail label="Phone" value={employee.phone} />
+                </dl>
+              ) : (
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  This account is not linked to an employee record. An administrator can link it from Roles &amp;
+                  Permissions &gt; Users.
+                </p>
+              )}
+            </Card>
+          </div>
+        )}
+
+        {tab === "edit" && (
+          <Card
+            icon={ShieldCheck}
+            title="Edit profile"
+            description={
+              employee
+                ? "Your name, designation, department and location are managed on your employee record."
+                : undefined
+            }
+          >
+            <EditProfileForm key={`${user.email}|${employee?.phone ?? ""}|${user.first_name}|${user.last_name}`} me={me} />
+          </Card>
+        )}
+
+        {tab === "password" && (
+          <Card icon={KeyRound} title="Change password">
+            <ChangePasswordForm />
+          </Card>
+        )}
       </div>
-
-      <Card
-        icon={ShieldCheck}
-        title="Edit profile"
-        description={
-          employee
-            ? "Your name, designation, department and location are managed on your employee record."
-            : undefined
-        }
-      >
-        <EditProfileForm key={`${user.email}|${employee?.phone ?? ""}|${user.first_name}|${user.last_name}`} me={me} />
-      </Card>
-
-      <Card icon={KeyRound} title="Change password">
-        <ChangePasswordForm />
-      </Card>
     </div>
   );
 }
