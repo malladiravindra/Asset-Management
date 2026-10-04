@@ -1,16 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { Topbar } from "@/components/dashboard/topbar";
+import { Breadcrumb, Topbar } from "@/components/dashboard/topbar";
 import { Providers } from "@/components/providers";
 import { MaintenanceBanner } from "@/components/settings/maintenance-banner";
+import { cn } from "@/lib/utils";
+
+const COLLAPSED_KEY = "assetflow.sidebar.collapsed";
+const COLLAPSED_EVENT = "assetflow:sidebar-collapsed";
+
+// Sidebar collapsed state lives in localStorage so it survives reloads. Read
+// through useSyncExternalStore: the server (and first hydration) render the
+// expanded sidebar, then React swaps in the stored value without a mismatch.
+function subscribeCollapsed(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(COLLAPSED_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(COLLAPSED_EVENT, callback);
+  };
+}
+function readCollapsed() {
+  try {
+    return window.localStorage.getItem(COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+function toggleCollapsed() {
+  try {
+    window.localStorage.setItem(COLLAPSED_KEY, readCollapsed() ? "0" : "1");
+  } catch {
+    // storage unavailable: the toggle just won't persist
+  }
+  window.dispatchEvent(new Event(COLLAPSED_EVENT));
+}
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
+  const collapsed = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
+  // The mobile drawer remembers the route it was opened on, so it closes by
+  // itself when the route changes.
+  const [drawerOpenAt, setDrawerOpenAt] = useState<string | null>(null);
+  const mobileOpen = drawerOpenAt === pathname;
   // null = auth not checked yet, false = no token (redirect in flight),
   // true = token present. Providers (and every data-fetching context inside
   // it — Assets, Employees, Departments, etc.) must not mount until this is
@@ -51,21 +86,25 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <Providers>
-      <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
         <div className="print:hidden">
           <Sidebar
             collapsed={collapsed}
-            onToggle={() => setCollapsed((v) => !v)}
+            onToggle={toggleCollapsed}
             mobileOpen={mobileOpen}
-            onMobileClose={() => setMobileOpen(false)}
+            onMobileClose={() => setDrawerOpenAt(null)}
           />
+          <Topbar collapsed={collapsed} onMenuClick={() => setDrawerOpenAt(pathname)} />
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="print:hidden">
-            <Topbar collapsed={collapsed} onMenuClick={() => setMobileOpen(true)} />
-          </div>
+        <div
+          className={cn(
+            "transition-[padding-left] duration-200 print:pl-0",
+            collapsed ? "lg:pl-[72px]" : "lg:pl-[240px]"
+          )}
+        >
           <div className="h-16 print:hidden" aria-hidden="true" />
-          <main className="p-4 sm:p-6 xl:p-8 print:p-0">
+          <main className="w-full p-4 sm:p-6 xl:p-8 print:p-0">
+            <Breadcrumb />
             <MaintenanceBanner />
             {children}
           </main>

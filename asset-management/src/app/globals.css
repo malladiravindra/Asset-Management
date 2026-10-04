@@ -325,7 +325,29 @@ button:not(:disabled),
   animation: pin-drop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 0.5) transparent;
+}
+.thin-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(148 163 184 / 0.5);
+  border-radius: 9999px;
+}
+
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-menu-in {
+  animation: menu-in 0.15s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .animate-menu-in,
   .animate-zoom-in,
   .animate-slide-in-left,
   .animate-slide-in-right,
