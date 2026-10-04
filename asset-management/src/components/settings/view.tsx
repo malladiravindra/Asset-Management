@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -318,10 +318,8 @@ export function SettingsView() {
     return (
       <div className="space-y-6" aria-busy="true">
         <div className="h-8 w-40 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
-        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <div className="h-96 animate-pulse rounded-2xl bg-slate-200/70 dark:bg-slate-800/70" />
-          <div className="h-96 animate-pulse rounded-2xl bg-slate-200/70 dark:bg-slate-800/70" />
-        </div>
+        <div className="h-14 animate-pulse rounded-xl bg-slate-200/70 dark:bg-slate-800/70" />
+        <div className="h-96 animate-pulse rounded-2xl bg-slate-200/70 dark:bg-slate-800/70" />
       </div>
     );
   }
@@ -353,59 +351,18 @@ export function SettingsView() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-        {/* ── Category navigation ─────────────────────────────────────── */}
-        <nav aria-label="Settings categories" className="lg:sticky lg:top-24 lg:self-start">
-          <ul className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 lg:flex-col lg:overflow-visible dark:border-slate-800 dark:bg-slate-900">
-            {SECTIONS.map((s) => {
-              const keys = sectionKeysFor(s.key);
-              const hasDirty = dirtyKeys.some((k) => keys.has(k));
-              const hasError = Object.keys(errors).some((k) => keys.has(k));
-              const isActive = s.key === active;
-              const Icon = s.icon;
-              return (
-                <Fragment key={s.key}>
-                <li className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => selectSection(s.key)}
-                    aria-current={isActive ? "page" : undefined}
-                    className={cn(
-                      "flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-medium transition",
-                      isActive
-                        ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="flex-1">{s.label}</span>
-                    {hasError ? (
-                      <span className="h-2 w-2 rounded-full bg-red-500" aria-label="Has errors" />
-                    ) : hasDirty ? (
-                      <span className="h-2 w-2 rounded-full bg-amber-500" aria-label="Unsaved changes" />
-                    ) : null}
-                  </button>
-                </li>
-                {s.key === "general" &&
-                  accessLinks.map((l) => (
-                    <li key={l.href} className="shrink-0">
-                      <Link
-                        href={l.href}
-                        className="flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-                      >
-                        <l.icon className="h-4 w-4 shrink-0" />
-                        <span className="flex-1">{l.label}</span>
-                      </Link>
-                    </li>
-                  ))}
-                </Fragment>
-              );
-            })}
-          </ul>
-        </nav>
+      {/* ── Category tabs ───────────────────────────────────────────────── */}
+      <SettingsTabs
+        active={active}
+        onSelect={selectSection}
+        accessLinks={accessLinks}
+        dirtyKeys={dirtyKeys}
+        errorKeys={Object.keys(errors)}
+      />
 
+      <div>
         {/* ── Active section ──────────────────────────────────────────── */}
-        <div key={active} className="min-w-0 space-y-5 animate-fade-in-up">
+        <div key={active} id="settings-panel" role="tabpanel" aria-labelledby={`settings-tab-${active}`} className="min-w-0 space-y-5 animate-fade-in-up">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{section.title}</h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{section.description}</p>
@@ -534,6 +491,147 @@ export function SettingsView() {
           </div>
         </Modal>
       )}
+    </div>
+  );
+}
+
+type AccessLink = { label: string; href: string; icon: React.ComponentType<{ className?: string }>; show: boolean };
+
+const tabClass =
+  "relative flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 dark:focus-visible:ring-offset-slate-900";
+
+function SettingsTabs({
+  active,
+  onSelect,
+  accessLinks,
+  dirtyKeys,
+  errorKeys,
+}: {
+  active: SectionKey;
+  onSelect: (key: SectionKey) => void;
+  accessLinks: AccessLink[];
+  dirtyKeys: string[];
+  errorKeys: string[];
+}) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+
+  const updateEdges = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setEdges({ left: el.scrollLeft > 4, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 4 });
+  }, []);
+
+  useEffect(() => {
+    updateEdges();
+    window.addEventListener("resize", updateEdges);
+    return () => window.removeEventListener("resize", updateEdges);
+  }, [updateEdges]);
+
+  // Keep the active tab visible whenever the section (URL) changes.
+  useEffect(() => {
+    document
+      .getElementById(`settings-tab-${active}`)
+      ?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [active]);
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const keys = SECTIONS.map((s) => s.key);
+    const i = keys.indexOf(active);
+    let next = -1;
+    if (e.key === "ArrowRight") next = (i + 1) % keys.length;
+    else if (e.key === "ArrowLeft") next = (i - 1 + keys.length) % keys.length;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = keys.length - 1;
+    if (next < 0) return;
+    e.preventDefault();
+    onSelect(keys[next]);
+    document.getElementById(`settings-tab-${keys[next]}`)?.focus();
+  }
+
+  return (
+    <div className="sticky top-16 z-10 -mx-1 px-1 py-1">
+      <div className="relative rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div
+          ref={scrollerRef}
+          onScroll={updateEdges}
+          className="flex flex-nowrap items-center gap-1 overflow-x-auto p-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <div role="tablist" aria-label="Settings categories" onKeyDown={onKeyDown} className="flex flex-nowrap gap-1">
+            {SECTIONS.map((s) => {
+              const keys = sectionKeysFor(s.key);
+              const hasError = errorKeys.some((k) => keys.has(k));
+              const hasDirty = dirtyKeys.some((k) => keys.has(k));
+              const isActive = s.key === active;
+              const Icon = s.icon;
+              return (
+                <button
+                  key={s.key}
+                  id={`settings-tab-${s.key}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls="settings-panel"
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => onSelect(s.key)}
+                  className={cn(
+                    tabClass,
+                    isActive
+                      ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
+                  )}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  <span>{s.label}</span>
+                  {hasError ? (
+                    <span className="h-2 w-2 rounded-full bg-red-500" aria-label="Has errors" />
+                  ) : hasDirty ? (
+                    <span className="h-2 w-2 rounded-full bg-amber-500" aria-label="Unsaved changes" />
+                  ) : null}
+                  {isActive && (
+                    <span aria-hidden="true" className="absolute inset-x-2 -bottom-1.5 h-0.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {accessLinks.length > 0 && (
+            <>
+              <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
+              {accessLinks.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className={cn(
+                    tabClass,
+                    "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
+                  )}
+                >
+                  <l.icon className="h-4 w-4 shrink-0" />
+                  <span>{l.label}</span>
+                </Link>
+              ))}
+            </>
+          )}
+        </div>
+
+        {/* Fade edges hint at horizontal overflow */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-y-0 left-0 w-8 rounded-l-xl bg-gradient-to-r from-white to-transparent transition-opacity duration-150 dark:from-slate-900",
+            edges.left ? "opacity-100" : "opacity-0",
+          )}
+        />
+        <div
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute inset-y-0 right-0 w-8 rounded-r-xl bg-gradient-to-l from-white to-transparent transition-opacity duration-150 dark:from-slate-900",
+            edges.right ? "opacity-100" : "opacity-0",
+          )}
+        />
+      </div>
     </div>
   );
 }
